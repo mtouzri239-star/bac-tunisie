@@ -1,18 +1,9 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-HC44GFL8MW"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-HC44GFL8MW');
-</script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bac Tunisie Hub - Complet</title>
+    <title>Bac Tunisie Hub - Sauvegarde Cloud</title>
     
     <!-- 1. Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -21,8 +12,11 @@
             darkMode: 'class',
             theme: {
                 extend: {
-                    colors: {
-                        slate: { 750: '#1e293b' } // Custom dark color
+                    colors: { slate: { 750: '#1e293b' }, indigo: { 450: '#6366f1' } },
+                    animation: { 'fadeIn': 'fadeIn 0.5s ease-out', 'slideUp': 'slideUp 0.5s ease-out' },
+                    keyframes: {
+                        fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
+                        slideUp: { '0%': { transform: 'translateY(20px)', opacity: '0' }, '100%': { transform: 'translateY(0)', opacity: '1' } }
                     }
                 }
             }
@@ -32,82 +26,71 @@
     <!-- 2. React & ReactDOM -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-    
-    <!-- 3. Babel -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
     <style>
-        .custom-scrollbar::-webkit-scrollbar { height: 4px; width: 4px; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .custom-scrollbar::-webkit-scrollbar { width: 5px; height: 5px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         .dark .custom-scrollbar::-webkit-scrollbar-thumb { background: #475569; }
-        
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .animate-fadeIn { animation: fadeIn 0.4s ease-out; }
+        body { -webkit-tap-highlight-color: transparent; }
     </style>
 </head>
-<body>
+<body class="bg-slate-50 dark:bg-[#0f172a] text-slate-900 dark:text-slate-100 transition-colors duration-300">
     <div id="root"></div>
 
     <script type="text/babel" data-type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, addDoc, getDocs, orderBy, query } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
         import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
-        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-        // --- 1. CONFIGURATION FIREBASE (À REMPLACER) ---
+        // --- A. VOS CLÉS FIREBASE ---
         const firebaseConfig = {
-  apiKey: "AIzaSyA0EvT1wX89zK6RYbyoWwoxfQjVsi_iro4",
-  authDomain: "bac-tunisie-hub.firebaseapp.com",
-  projectId: "bac-tunisie-hub",
-  storageBucket: "bac-tunisie-hub.firebasestorage.app",
-  messagingSenderId: "197783232548",
-  appId: "1:197783232548:web:357418ad0cb99a741fb8b1",
-  measurementId: "G-HC44GFL8MW"
-};
-
-        // --- Initialisation Firebase ---
-        let app, db, storage, auth;
-        let configError = false;
-        
-        try {
-            if (firebaseConfig.apiKey === "VOTRE_API_KEY_ICI") {
-                configError = true;
-            } else {
-                app = initializeApp(firebaseConfig);
-                db = getFirestore(app);
-                storage = getStorage(app);
-                auth = getAuth(app);
-            }
-        } catch (e) {
-            console.error("Firebase Error", e);
-            configError = true;
-        }
-
-        const { useState, useEffect, useRef } = React;
-
-        // --- 2. JEU D'ICÔNES SVG (Pas d'install nécessaire) ---
-        const Icons = {
-            GraduationCap: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 0 6-3 6-7 0 5 6 7 6 7v-5M12 22v-7"/></svg>,
-            Calculator: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="16" height="20" x="4" y="2" rx="2"/><line x1="8" x2="16" y1="6" y2="6"/><line x1="16" x2="16" y1="14" y2="18"/><path d="M16 10h.01"/><path d="M12 10h.01"/><path d="M8 10h.01"/><path d="M12 14h.01"/><path d="M8 14h.01"/><path d="M12 18h.01"/><path d="M8 18h.01"/></svg>,
-            Book: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>,
-            Calendar: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>,
-            Upload: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>,
-            FileText: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/><line x1="10" x2="8" y1="9" y2="9"/></svg>,
-            Eye: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>,
-            Alert: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>,
-            Loader: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="animate-spin"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>,
-            Moon: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>,
-            Sun: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>,
-            Plus: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>,
-            CheckCircle: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>,
-            Trash2: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>,
-            Clock: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>,
-            Video: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m22 8-6 4 6 4V8Z"/><rect width="14" height="12" x="2" y="6" rx="2" ry="2"/></svg>,
-            Image: () => <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+            apiKey: "AIzaSyA0EvT1wX89zK6RYbyoWwoxfQjVsi_iro4",
+            authDomain: "bac-tunisie-hub.firebaseapp.com",
+            projectId: "bac-tunisie-hub",
+            storageBucket: "bac-tunisie-hub.firebasestorage.app",
+            messagingSenderId: "197783232548",
+            appId: "1:197783232548:web:357418ad0cb99a741fb8b1",
+            measurementId: "G-HC44GFL8MW"
         };
 
-        // --- 3. DONNÉES COMPLÈTES (Toutes sections) ---
+        // --- Initialisation ---
+        let app, db, storage, auth;
+        try {
+            app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            storage = getStorage(app);
+            auth = getAuth(app);
+        } catch (e) { console.error("Erreur Firebase", e); }
+
+        const { useState, useEffect } = React;
+
+        // --- B. ICÔNES ---
+        const Icons = {
+            GraduationCap: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 0 6-3 6-7 0 5 6 7 6 7v-5M12 22v-7"/></svg>,
+            Calculator: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="16" height="20" x="4" y="2" rx="2"/><line x1="8" x2="16" y1="6" y2="6"/><line x1="16" x2="16" y1="14" y2="18"/><path d="M16 10h.01"/><path d="M12 10h.01"/><path d="M8 10h.01"/><path d="M12 14h.01"/><path d="M8 14h.01"/><path d="M12 18h.01"/><path d="M8 18h.01"/></svg>,
+            Book: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>,
+            Calendar: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>,
+            Upload: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>,
+            FileText: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" x2="8" y1="13" y2="13"/><line x1="16" x2="8" y1="17" y2="17"/><line x1="10" x2="8" y1="9" y2="9"/></svg>,
+            Eye: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>,
+            Download: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>,
+            Loader: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="animate-spin"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>,
+            Moon: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 0 1 1-9-9Z"/></svg>,
+            Sun: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>,
+            Plus: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>,
+            CheckCircle: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>,
+            Trash2: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>,
+            Video: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m22 8-6 4 6 4V8Z"/><rect width="14" height="12" x="2" y="6" rx="2" ry="2"/></svg>,
+            Image: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>,
+            X: (p) => <svg {...p} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 18 12"/></svg>
+        };
+
+        // --- C. DONNÉES ---
         const BAC_DATA = {
             math: { label: "Maths", color: "from-blue-600 to-indigo-600", subjects: [ {id:"math",name:"Maths",coeff:4}, {id:"phy",name:"Physique",coeff:4}, {id:"fr",name:"Français",coeff:1}, {id:"eng",name:"Anglais",coeff:1}, {id:"philo",name:"Philo",coeff:1}, {id:"arabe",name:"Arabe",coeff:1}, {id:"info",name:"Info",coeff:1}, {id:"svt",name:"SVT",coeff:1}, {id:"sport",name:"Sport",coeff:1}, {id:"opt",name:"Option",coeff:1,isOption:true} ], scoreFormula: (mg, g) => 4*mg + 2*(g.math||0) + 1.5*(g.phy||0) + 0.5*(g.fr||0) + 0.5*(g.eng||0) },
             sc_exp: { label: "Sciences", color: "from-emerald-600 to-teal-600", subjects: [ {id:"svt",name:"SVT",coeff:4}, {id:"phy",name:"Physique",coeff:4}, {id:"math",name:"Maths",coeff:3}, {id:"fr",name:"Français",coeff:1}, {id:"eng",name:"Anglais",coeff:1}, {id:"philo",name:"Philo",coeff:1}, {id:"arabe",name:"Arabe",coeff:1}, {id:"info",name:"Info",coeff:1}, {id:"sport",name:"Sport",coeff:1}, {id:"opt",name:"Option",coeff:1,isOption:true} ], scoreFormula: (mg, g) => 4*mg + 1.5*(g.svt||0) + 1.5*(g.phy||0) + 1*(g.math||0) + 0.5*(g.fr||0) + 0.5*(g.eng||0) },
@@ -118,41 +101,19 @@
         };
 
         const IMPORTANT_DATES = [
-            { event: "Bac Sport", date: "2025-04-15" },
-            { event: "Bac Blanc", date: "2025-05-10" },
-            { event: "Bac Principal", date: "2025-06-04" },
-            { event: "Résultats", date: "2025-06-25" }
+            { event: "Bac Sport", date: "15 Avr 2025" },
+            { event: "Bac Blanc", date: "10 Mai 2025" },
+            { event: "Bac Principal", date: "04 Juin 2025" },
+            { event: "Résultats", date: "25 Juin 2025" }
         ];
 
-        // --- COMPOSANT ERREUR ---
-        const ConfigError = () => (
-            <div className="min-h-screen flex items-center justify-center bg-slate-100 p-4">
-                <div className="bg-white p-8 rounded-xl shadow-xl max-w-md text-center">
-                    <div className="text-red-500 mb-4 flex justify-center"><Icons.Alert /></div>
-                    <h2 className="text-xl font-bold mb-2">Configuration Manquante</h2>
-                    <p className="text-slate-600 mb-4">Vous devez éditer le fichier <code>index.html</code> et y coller vos clés Firebase.</p>
-                    <div className="text-xs bg-slate-100 p-2 rounded text-left font-mono">const firebaseConfig = &#123; ... &#125;</div>
-                </div>
-            </div>
-        );
+        // --- D. COMPOSANTS ---
 
-        // --- COMPOSANT SELECTEUR DE SECTION ---
-        const SectionSelector = ({ selected, onSelect }) => (
-            <div className="flex gap-2 mb-6 overflow-x-auto pb-2 custom-scrollbar">
-                {Object.entries(BAC_DATA).map(([key, data]) => (
-                    <button key={key} onClick={() => onSelect(key)} className={`px-4 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-all ${selected === key ? `bg-gradient-to-r ${data.color} text-white shadow-md` : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border dark:border-slate-700'}`}>
-                        {data.label}
-                    </button>
-                ))}
-            </div>
-        );
-
-        // --- COMPOSANT SIMULATEUR ---
+        // 1. Calculateur
         const CalculatorView = ({ section }) => {
             const [grades, setGrades] = useState({});
             const [res, setRes] = useState(null);
             
-            // Reset au changement de section
             useEffect(() => { setGrades({}); setRes(null); }, [section]);
 
             const calculate = () => {
@@ -169,22 +130,31 @@
 
             return (
                 <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 animate-fadeIn">
-                    <h3 className="font-bold text-lg mb-4 text-slate-800 dark:text-white flex items-center gap-2"><Icons.Calculator /> Simulateur {BAC_DATA[section].label}</h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+                    <h3 className="font-bold text-lg mb-6 text-slate-800 dark:text-white flex items-center gap-2">
+                        <Icons.Calculator className="text-indigo-500" /> Simulateur {BAC_DATA[section].label}
+                    </h3>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
                         {BAC_DATA[section].subjects.map(s => (
-                            <div key={s.id} className="flex justify-between items-center bg-slate-50 dark:bg-slate-700 p-3 rounded-lg">
-                                <label className="text-sm font-medium dark:text-slate-200">{s.name} <span className="text-xs opacity-60">x{s.coeff}</span></label>
-                                <input type="number" className="w-16 p-1 border dark:border-slate-600 rounded text-center bg-white dark:bg-slate-800 dark:text-white" placeholder="-" onChange={e => setGrades({...grades, [s.id]: e.target.value})} />
+                            <div key={s.id} className="bg-slate-50 dark:bg-slate-700/50 p-2.5 rounded-xl border border-transparent focus-within:border-indigo-500 transition-colors">
+                                <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">{s.name} <span className="opacity-50">x{s.coeff}</span></label>
+                                <input type="number" className="w-full bg-transparent font-bold text-slate-900 dark:text-white outline-none" placeholder="-" onChange={e => setGrades({...grades, [s.id]: e.target.value})} />
                             </div>
                         ))}
                     </div>
-                    <button onClick={calculate} className={`w-full bg-gradient-to-r ${BAC_DATA[section].color} text-white py-3 rounded-xl font-bold shadow-lg hover:opacity-90 transition`}>Calculer Moyenne & Score</button>
-                    {res && <div className="mt-6 text-center p-6 bg-slate-900 rounded-2xl text-white shadow-xl animate-fadeIn"><div className="text-4xl font-black mb-1">{res.moy}</div><div className="text-sm opacity-80 uppercase tracking-widest">Moyenne</div><div className="mt-4 pt-4 border-t border-slate-700 text-xl text-indigo-400 font-bold">{res.score} FG</div></div>}
+                    <button onClick={calculate} className={`w-full bg-gradient-to-r ${BAC_DATA[section].color} text-white py-3.5 rounded-xl font-bold shadow-lg shadow-indigo-500/20 hover:scale-[1.02] active:scale-95 transition-all`}>Calculer</button>
+                    {res && (
+                        <div className="mt-6 p-6 bg-slate-900 rounded-2xl text-white shadow-xl animate-fadeIn text-center relative overflow-hidden">
+                            <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full blur-2xl -mr-10 -mt-10"></div>
+                            <div className="text-5xl font-black mb-1 tracking-tight">{res.moy}</div>
+                            <div className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4">Moyenne Générale</div>
+                            <div className="inline-block bg-white/10 px-4 py-1 rounded-full text-sm font-mono text-indigo-300">Score FG: {res.score}</div>
+                        </div>
+                    )}
                 </div>
             );
         };
 
-        // --- COMPOSANT AGENDA & TÂCHES ---
+        // 2. Agenda
         const PlanningView = () => {
             const [tasks, setTasks] = useState(() => JSON.parse(localStorage.getItem('bac_tasks') || '[]'));
             const [newTask, setNewTask] = useState("");
@@ -204,40 +174,57 @@
 
             return (
                 <div className="space-y-6 animate-fadeIn">
-                    <div className="bg-slate-900 rounded-2xl p-6 text-white text-center shadow-lg relative overflow-hidden">
-                        <div className="text-5xl font-black mb-2">{daysLeft}</div>
-                        <div className="text-sm opacity-70 uppercase tracking-widest">Jours avant le Bac</div>
+                    <div className="bg-slate-900 dark:bg-black rounded-2xl p-8 text-white text-center shadow-xl relative overflow-hidden group">
+                        <div className="absolute inset-0 bg-gradient-to-br from-indigo-600 to-purple-600 opacity-20 group-hover:opacity-30 transition-opacity"></div>
+                        <div className="relative z-10">
+                            <div className="text-6xl font-black mb-2 flex items-baseline justify-center gap-2">
+                                {Math.max(0, daysLeft)} <span className="text-lg font-medium text-slate-400">Jours</span>
+                            </div>
+                            <div className="text-sm font-medium text-slate-400 uppercase tracking-widest">Avant le Bac 2025</div>
+                        </div>
                     </div>
 
                     <div className="grid md:grid-cols-2 gap-6">
                         <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700">
-                            <h4 className="font-bold mb-4 flex gap-2 dark:text-white"><Icons.Calendar /> Dates Clés</h4>
-                            <div className="space-y-3">
+                            <h4 className="font-bold mb-6 flex gap-2 dark:text-white items-center"><Icons.Calendar className="text-red-500"/> Dates Clés</h4>
+                            <div className="space-y-4">
                                 {IMPORTANT_DATES.map((d,i) => (
-                                    <div key={i} className="flex justify-between text-sm py-2 border-b dark:border-slate-700 last:border-0 dark:text-slate-300">
-                                        <span>{d.event}</span><span className="font-mono bg-slate-100 dark:bg-slate-700 px-2 rounded">{d.date}</span>
+                                    <div key={i} className="flex items-center gap-4">
+                                        <div className="w-12 h-12 bg-slate-100 dark:bg-slate-700 rounded-xl flex flex-col items-center justify-center font-bold text-slate-700 dark:text-slate-300 text-xs shadow-sm">
+                                            <span className="text-lg">{d.date.split(' ')[0]}</span>
+                                            <span className="uppercase text-[10px]">{d.date.split(' ')[1]}</span>
+                                        </div>
+                                        <div>
+                                            <div className="font-bold text-slate-800 dark:text-white">{d.event}</div>
+                                            <div className="text-xs text-slate-500 dark:text-slate-400">Session 2025</div>
+                                        </div>
                                     </div>
                                 ))}
                             </div>
                         </div>
 
-                        <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700">
-                            <h4 className="font-bold mb-4 flex gap-2 dark:text-white"><Icons.CheckCircle /> Tâches (Auto-Save)</h4>
+                        <div className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 flex flex-col h-full">
+                            <div className="flex justify-between items-center mb-6">
+                                <h4 className="font-bold flex gap-2 dark:text-white items-center"><Icons.CheckCircle className="text-green-500"/> Tâches</h4>
+                                <span className="text-[10px] bg-slate-100 dark:bg-slate-700 text-slate-500 px-2 py-1 rounded-full font-bold">Auto-Save</span>
+                            </div>
                             <form onSubmit={addTask} className="flex gap-2 mb-4">
-                                <input className="flex-1 p-2 border rounded dark:bg-slate-700 dark:border-slate-600 dark:text-white" placeholder="Ajouter une tâche..." value={newTask} onChange={e => setNewTask(e.target.value)} />
-                                <button className="bg-green-600 text-white p-2 rounded"><Icons.Plus /></button>
+                                <input className="flex-1 px-4 py-2 border rounded-xl dark:bg-slate-700 dark:border-slate-600 dark:text-white outline-none focus:ring-2 focus:ring-indigo-500 transition-all" placeholder="Nouvelle tâche..." value={newTask} onChange={e => setNewTask(e.target.value)} />
+                                <button className="bg-indigo-600 text-white p-2.5 rounded-xl hover:bg-indigo-700 transition shadow-lg shadow-indigo-500/20"><Icons.Plus /></button>
                             </form>
-                            <div className="space-y-2 max-h-48 overflow-y-auto custom-scrollbar">
+                            <div className="space-y-2 max-h-60 overflow-y-auto custom-scrollbar flex-1">
                                 {tasks.map(t => (
-                                    <div key={t.id} className="flex items-center justify-between group p-2 hover:bg-slate-50 dark:hover:bg-slate-700 rounded">
-                                        <div className="flex items-center gap-2 cursor-pointer" onClick={() => toggle(t.id)}>
-                                            <div className={`w-4 h-4 border rounded ${t.done ? 'bg-green-500 border-green-500' : 'border-slate-300'}`}></div>
-                                            <span className={`text-sm ${t.done ? 'line-through text-slate-400' : 'dark:text-slate-200'}`}>{t.text}</span>
+                                    <div key={t.id} className="flex items-center justify-between group p-3 bg-slate-50 dark:bg-slate-700/50 hover:bg-white dark:hover:bg-slate-700 border border-transparent hover:border-slate-200 dark:hover:border-slate-600 rounded-xl transition-all">
+                                        <div className="flex items-center gap-3 cursor-pointer overflow-hidden" onClick={() => toggle(t.id)}>
+                                            <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${t.done ? 'bg-green-500 border-green-500' : 'border-slate-300 dark:border-slate-500'}`}>
+                                                {t.done && <Icons.CheckCircle className="text-white w-3 h-3" />}
+                                            </div>
+                                            <span className={`text-sm truncate ${t.done ? 'line-through text-slate-400' : 'dark:text-slate-200 font-medium'}`}>{t.text}</span>
                                         </div>
-                                        <button onClick={() => del(t.id)} className="text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100"><Icons.Trash2 /></button>
+                                        <button onClick={() => del(t.id)} className="text-slate-300 hover:text-red-500 transition opacity-0 group-hover:opacity-100"><Icons.Trash2 className="w-4 h-4" /></button>
                                     </div>
                                 ))}
-                                {tasks.length === 0 && <p className="text-center text-xs text-slate-400 italic">Aucune tâche.</p>}
+                                {tasks.length === 0 && <div className="text-center py-8 text-slate-400 italic text-sm">Aucune tâche. Repos mérité ?</div>}
                             </div>
                         </div>
                     </div>
@@ -245,7 +232,7 @@
             );
         };
 
-        // --- COMPOSANT BIBLIOTHÈQUE ---
+        // 3. Bibliothèque Cloud (AVEC TÉLÉCHARGEMENT)
         const LibraryView = ({ section }) => {
             const [files, setFiles] = useState([]);
             const [loading, setLoading] = useState(false);
@@ -253,20 +240,41 @@
             const [showForm, setShowForm] = useState(false);
             const [file, setFile] = useState(null);
             const [meta, setMeta] = useState({ title: "", author: "" });
+            const [user, setUser] = useState(null);
 
             useEffect(() => {
+                let unsubscribe = () => {};
                 const initAuth = async () => {
                     setLoading(true);
-                    await signInAnonymously(auth);
-                    // Requête réelle
-                    try {
-                        const q = query(collection(db, "resources"), orderBy("createdAt", "desc"));
-                        const snap = await getDocs(q);
-                        setFiles(snap.docs.map(d => d.data()));
-                    } catch (e) { console.error(e); }
-                    setLoading(false);
+                    
+                    // Attempt to connect if not already
+                    if (!auth.currentUser) {
+                        try {
+                            await signInAnonymously(auth);
+                        } catch (error) {
+                            console.error("Auth Error:", error);
+                            if (error.code === 'auth/admin-restricted-operation') {
+                                alert("Attention : Vous devez activer l'authentification ANONYME dans la console Firebase (Authentication > Sign-in method) pour que la bibliothèque fonctionne.");
+                            }
+                            setLoading(false);
+                            return;
+                        }
+                    }
+
+                    unsubscribe = onAuthStateChanged(auth, async (u) => {
+                        setUser(u);
+                        if (u) {
+                            try {
+                                const q = query(collection(db, "resources"), orderBy("createdAt", "desc"));
+                                const snap = await getDocs(q);
+                                setFiles(snap.docs.map(d => d.data()));
+                            } catch (e) { console.error(e); }
+                        }
+                        setLoading(false);
+                    });
                 };
                 initAuth();
+                return () => unsubscribe();
             }, [uploading]);
 
             const handleUpload = async (e) => {
@@ -274,9 +282,11 @@
                 if(!file) return;
                 setUploading(true);
                 try {
-                    const fRef = ref(storage, `docs/${Date.now()}_${file.name}`);
+                    const uniqueName = `docs/${Date.now()}_${file.name}`;
+                    const fRef = ref(storage, uniqueName);
                     await uploadBytes(fRef, file);
                     const url = await getDownloadURL(fRef);
+                    
                     let type = "PDF";
                     if(file.type.includes("image")) type = "Image";
                     if(file.type.includes("video")) type = "Video";
@@ -288,74 +298,118 @@
                         section, 
                         createdAt: new Date()
                     });
-                    alert("Fichier publié !");
+                    alert("Document sauvegardé dans le Cloud !");
                     setFile(null);
                     setShowForm(false);
-                } catch(err) { console.error(err); alert("Erreur upload"); }
+                } catch(err) { console.error(err); alert("Erreur upload : " + err.message); }
                 setUploading(false);
             };
 
             return (
                 <div className="space-y-6 animate-fadeIn">
-                    <div className={`bg-gradient-to-r ${BAC_DATA[section].color} rounded-2xl p-6 text-white shadow-lg flex justify-between items-center`}>
-                        <div><h3 className="font-bold text-xl flex gap-2"><Icons.Book /> Bibliothèque</h3><p className="text-sm opacity-80">Cloud Storage</p></div>
-                        <button onClick={() => setShowForm(!showForm)} className="bg-white/20 p-2 rounded-full hover:bg-white/30 transition">{showForm ? <Icons.Plus style={{transform:'rotate(45deg)'}}/> : <Icons.Plus />}</button>
+                    <div className={`bg-gradient-to-r ${BAC_DATA[section].color} rounded-2xl p-6 text-white shadow-lg flex justify-between items-center relative overflow-hidden`}>
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-white opacity-10 rounded-full blur-3xl -mr-10 -mt-10"></div>
+                        <div className="relative z-10">
+                            <h3 className="font-bold text-xl flex gap-2 items-center"><Icons.Book /> Bibliothèque</h3>
+                            <p className="text-sm opacity-80 mt-1">{user ? "Connecté au Cloud (Mode Lecture/Écriture)" : "Connexion..."}</p>
+                        </div>
+                        <button onClick={() => setShowForm(!showForm)} className="bg-white/20 backdrop-blur-md p-3 rounded-full hover:bg-white/30 transition shadow-lg relative z-10">
+                            {showForm ? <Icons.X /> : <Icons.Plus />}
+                        </button>
                     </div>
 
                     {showForm && (
-                        <form onSubmit={handleUpload} className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-lg border dark:border-slate-700 animate-fadeIn">
-                            <h4 className="font-bold mb-4 dark:text-white">Partager un fichier</h4>
-                            <div className="grid gap-3">
-                                <input className="w-full p-2 border rounded dark:bg-slate-700 dark:border-slate-600 dark:text-white" placeholder="Titre du cours..." onChange={e => setMeta({...meta, title: e.target.value})} required />
-                                <input className="w-full p-2 border rounded dark:bg-slate-700 dark:border-slate-600 dark:text-white" placeholder="Auteur" onChange={e => setMeta({...meta, author: e.target.value})} required />
-                                <input type="file" className="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-slate-100 file:text-slate-700 dark:file:bg-slate-700 dark:file:text-white" onChange={e => setFile(e.target.files[0])} required />
-                                <button disabled={uploading} className="w-full bg-slate-900 text-white py-2 rounded-lg font-bold flex justify-center items-center gap-2">
-                                    {uploading ? <Icons.Loader /> : "Envoyer"}
+                        <form onSubmit={handleUpload} className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-xl border dark:border-slate-700 animate-slideUp">
+                            <h4 className="font-bold mb-6 dark:text-white flex items-center gap-2"><Icons.Upload className="text-indigo-500"/> Sauvegarder un fichier</h4>
+                            <div className="grid gap-4">
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="text-xs font-bold text-slate-500 mb-1 block">Titre</label>
+                                        <input className="w-full p-2.5 border rounded-xl dark:bg-slate-700 dark:border-slate-600 dark:text-white outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Ex: Chapitre 1" onChange={e => setMeta({...meta, title: e.target.value})} required />
+                                    </div>
+                                    <div>
+                                        <label className="text-xs font-bold text-slate-500 mb-1 block">Auteur</label>
+                                        <input className="w-full p-2.5 border rounded-xl dark:bg-slate-700 dark:border-slate-600 dark:text-white outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Votre nom" onChange={e => setMeta({...meta, author: e.target.value})} required />
+                                    </div>
+                                </div>
+                                <div className="border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-xl p-6 text-center hover:bg-slate-50 dark:hover:bg-slate-700/50 transition cursor-pointer relative">
+                                    <input type="file" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" onChange={e => setFile(e.target.files[0])} required />
+                                    <div className="pointer-events-none">
+                                        {file ? (
+                                            <span className="text-green-500 font-bold flex items-center justify-center gap-2"><Icons.CheckCircle/> {file.name}</span>
+                                        ) : (
+                                            <span className="text-slate-400 dark:text-slate-500 flex flex-col items-center gap-2">
+                                                <Icons.Upload className="w-8 h-8"/>
+                                                <span>Cliquez pour choisir un PDF, Image ou Vidéo</span>
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
+                                <button disabled={uploading} className="w-full bg-indigo-600 text-white py-3 rounded-xl font-bold flex justify-center items-center gap-2 hover:bg-indigo-700 transition disabled:opacity-50 shadow-lg shadow-indigo-500/20">
+                                    {uploading ? <><Icons.Loader className="w-5 h-5"/> Envoi...</> : "Publier maintenant"}
                                 </button>
                             </div>
                         </form>
                     )}
 
                     <div className="grid md:grid-cols-2 gap-4">
-                        {loading ? <div className="col-span-2 text-center p-8"><Icons.Loader /></div> : files.map((f, i) => (
-                            <div key={i} className="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 hover:shadow-md transition flex justify-between items-center group">
+                        {loading ? <div className="col-span-2 text-center p-12 text-indigo-500"><Icons.Loader className="w-8 h-8 mx-auto"/></div> : files.map((f, i) => (
+                            <div key={i} className="bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 hover:shadow-md hover:border-indigo-200 dark:hover:border-indigo-800 transition group">
                                 <div className="flex items-center gap-4">
-                                    <div className={`p-3 rounded-xl ${f.type === 'PDF' ? 'bg-red-100 text-red-600' : f.type === 'Video' ? 'bg-purple-100 text-purple-600' : 'bg-blue-100 text-blue-600'}`}>
+                                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-sm ${f.type === 'PDF' ? 'bg-red-100 text-red-600' : f.type === 'Video' ? 'bg-purple-100 text-purple-600' : 'bg-blue-100 text-blue-600'}`}>
                                         {f.type === 'PDF' ? <Icons.FileText /> : f.type === 'Video' ? <Icons.Video /> : <Icons.Image />}
                                     </div>
-                                    <div className="min-w-0">
-                                        <h4 className="font-bold dark:text-white truncate max-w-[150px]">{f.title}</h4>
-                                        <p className="text-xs text-slate-500 dark:text-slate-400">{f.author} • {f.type}</p>
+                                    <div className="flex-1 min-w-0">
+                                        <h4 className="font-bold text-slate-800 dark:text-slate-100 truncate">{f.title}</h4>
+                                        <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 mt-1">
+                                            <span className="bg-slate-100 dark:bg-slate-700 px-2 py-0.5 rounded-full">{f.type}</span>
+                                            <span>{f.author}</span>
+                                        </div>
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <a href={f.url} target="_blank" className="p-2 bg-slate-100 dark:bg-slate-700 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-indigo-100 dark:hover:bg-indigo-900/30 hover:text-indigo-600 dark:hover:text-indigo-400 transition" title="Voir">
+                                            <Icons.Eye className="w-5 h-5"/>
+                                        </a>
+                                        <a href={f.url} download target="_blank" className="p-2 bg-slate-100 dark:bg-slate-700 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-green-100 dark:hover:bg-green-900/30 hover:text-green-600 dark:hover:text-green-400 transition" title="Télécharger">
+                                            <Icons.Download className="w-5 h-5"/>
+                                        </a>
                                     </div>
                                 </div>
-                                <a href={f.url} target="_blank" className="bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 px-3 py-1.5 rounded-lg text-sm font-bold hover:bg-slate-200 dark:hover:bg-slate-600 transition flex items-center gap-2">
-                                    <Icons.Eye />
-                                </a>
                             </div>
                         ))}
-                        {!loading && files.length === 0 && <div className="col-span-2 text-center p-8 text-slate-400 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl">Aucun fichier.</div>}
+                        {!loading && files.length === 0 && <div className="col-span-2 text-center p-12 text-slate-400 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-2xl">La bibliothèque est vide pour le moment.</div>}
                     </div>
                 </div>
             );
         };
 
-        // --- APP PRINCIPALE ---
+        // --- E. APP PRINCIPALE ---
         const App = () => {
             const [tab, setTab] = useState('calc');
             const [section, setSection] = useState('math');
             const [darkMode, setDarkMode] = useState(false);
 
-            if (configError) return <ConfigError />;
+            // SELECTEUR DE SECTION (CSS Custom)
+            const SectionSelector = ({ selected, onSelect }) => (
+                <div className="flex gap-2 mb-6 overflow-x-auto pb-2 custom-scrollbar">
+                    {Object.entries(BAC_DATA).map(([key, data]) => (
+                        <button key={key} onClick={() => onSelect(key)} className={`px-4 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-all ${selected === key ? `bg-gradient-to-r ${data.color} text-white shadow-md` : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border dark:border-slate-700'}`}>
+                            {data.label}
+                        </button>
+                    ))}
+                </div>
+            );
 
             return (
                 <div className={darkMode ? 'dark' : ''}>
-                    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 transition-colors duration-300 pb-20">
-                        <header className="sticky top-0 z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-700 px-4 py-3 shadow-sm">
+                    <div className="min-h-screen bg-slate-50 dark:bg-[#0f172a] text-slate-900 dark:text-slate-100 transition-colors duration-300 pb-24">
+                        <header className="sticky top-0 z-50 bg-white/80 dark:bg-[#0f172a]/80 backdrop-blur-xl border-b border-slate-200 dark:border-slate-800 px-4 py-3 shadow-sm transition-colors">
                             <div className="max-w-3xl mx-auto flex justify-between items-center">
-                                <div className="flex items-center gap-2 font-bold text-xl text-slate-900 dark:text-white">
-                                    <div className="text-red-600"><Icons.GraduationCap /></div> BacHub
+                                <div className="flex items-center gap-2.5">
+                                    <div className="bg-gradient-to-br from-red-600 to-rose-600 text-white p-1.5 rounded-lg shadow-lg shadow-red-500/20"><Icons.GraduationCap /></div>
+                                    <div><h1 className="text-lg font-bold leading-none tracking-tight">Bac<span className="text-red-600">Tunisie</span></h1><span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Hub Éducatif</span></div>
                                 </div>
-                                <button onClick={() => setDarkMode(!darkMode)} className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+                                <button onClick={() => setDarkMode(!darkMode)} className="p-2.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition">
                                     {darkMode ? <Icons.Sun /> : <Icons.Moon />}
                                 </button>
                             </div>
@@ -363,19 +417,13 @@
 
                         <main className="max-w-3xl mx-auto p-4 pt-6">
                             <SectionSelector selected={section} onSelect={setSection} />
-
-                            <div className="flex gap-2 mb-8 bg-white dark:bg-slate-800 p-1 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-x-auto">
-                                {[
-                                    {id:'calc', label:'Simulateur', icon: <Icons.Calculator/>},
-                                    {id:'planning', label:'Agenda', icon: <Icons.Calendar/>},
-                                    {id:'library', label:'Biblio', icon: <Icons.Book/>}
-                                ].map(t => (
-                                    <button key={t.id} onClick={() => setTab(t.id)} className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-sm font-bold transition-all ${tab === t.id ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-md' : 'text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-700'}`}>
-                                        <span className="scale-75">{t.icon}</span> {t.label}
+                            <div className="flex p-1.5 bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 mb-8 overflow-x-auto">
+                                {[ {id:'calc', label:'Simulateur', icon: <Icons.Calculator/>}, {id:'planning', label:'Agenda', icon: <Icons.Calendar/>}, {id:'library', label:'Biblio', icon: <Icons.Book/>} ].map(t => (
+                                    <button key={t.id} onClick={() => setTab(t.id)} className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${tab === t.id ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-md scale-[1.02]' : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700/50'}`}>
+                                        <span className="scale-90 opacity-80">{t.icon}</span> {t.label}
                                     </button>
                                 ))}
                             </div>
-
                             {tab === 'calc' && <CalculatorView section={section} />}
                             {tab === 'planning' && <PlanningView />}
                             {tab === 'library' && <LibraryView section={section} />}
