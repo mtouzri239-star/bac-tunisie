@@ -232,14 +232,15 @@
             );
         };
 
-        // 3. Bibliothèque Cloud (AVEC TÉLÉCHARGEMENT)
+        // 3. Bibliothèque Cloud (AVEC TÉLÉCHARGEMENT & CATEGORIE)
         const LibraryView = ({ section }) => {
             const [files, setFiles] = useState([]);
             const [loading, setLoading] = useState(false);
             const [uploading, setUploading] = useState(false);
             const [showForm, setShowForm] = useState(false);
             const [file, setFile] = useState(null);
-            const [meta, setMeta] = useState({ title: "", author: "" });
+            // Ajout du champ 'category' dans l'état
+            const [meta, setMeta] = useState({ title: "", author: "", category: "Chapitre" });
             const [user, setUser] = useState(null);
 
             useEffect(() => {
@@ -247,7 +248,6 @@
                 const initAuth = async () => {
                     setLoading(true);
                     
-                    // Attempt to connect if not already
                     if (!auth.currentUser) {
                         try {
                             await signInAnonymously(auth);
@@ -287,14 +287,17 @@
                     await uploadBytes(fRef, file);
                     const url = await getDownloadURL(fRef);
                     
-                    let type = "PDF";
-                    if(file.type.includes("image")) type = "Image";
-                    if(file.type.includes("video")) type = "Video";
+                    let format = "PDF";
+                    if(file.type.includes("image")) format = "Image";
+                    if(file.type.includes("video")) format = "Video";
                     
+                    // Enregistrement avec la catégorie choisie
                     await addDoc(collection(db, "resources"), {
-                        ...meta, 
+                        title: meta.title,
+                        author: meta.author,
+                        category: meta.category, // "Chapitre", "Résumé", etc.
+                        format: format, // "PDF", "Video" (anciennement 'type')
                         url, 
-                        type, 
                         section, 
                         createdAt: new Date()
                     });
@@ -332,6 +335,23 @@
                                         <input className="w-full p-2.5 border rounded-xl dark:bg-slate-700 dark:border-slate-600 dark:text-white outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Votre nom" onChange={e => setMeta({...meta, author: e.target.value})} required />
                                     </div>
                                 </div>
+                                
+                                {/* Sélecteur de Catégorie Ajouté */}
+                                <div>
+                                    <label className="text-xs font-bold text-slate-500 mb-1 block">Type de document</label>
+                                    <select 
+                                        className="w-full p-2.5 border rounded-xl dark:bg-slate-700 dark:border-slate-600 dark:text-white outline-none focus:ring-2 focus:ring-indigo-500"
+                                        onChange={e => setMeta({...meta, category: e.target.value})}
+                                        value={meta.category}
+                                    >
+                                        <option value="Chapitre">Chapitre</option>
+                                        <option value="Résumé">Résumé</option>
+                                        <option value="Exercice">Série d'Exercices</option>
+                                        <option value="Devoir">Devoir</option>
+                                        <option value="Autre">Autre</option>
+                                    </select>
+                                </div>
+
                                 <div className="border-2 border-dashed border-slate-300 dark:border-slate-600 rounded-xl p-6 text-center hover:bg-slate-50 dark:hover:bg-slate-700/50 transition cursor-pointer relative">
                                     <input type="file" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" onChange={e => setFile(e.target.files[0])} required />
                                     <div className="pointer-events-none">
@@ -356,13 +376,16 @@
                         {loading ? <div className="col-span-2 text-center p-12 text-indigo-500"><Icons.Loader className="w-8 h-8 mx-auto"/></div> : files.map((f, i) => (
                             <div key={i} className="bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 hover:shadow-md hover:border-indigo-200 dark:hover:border-indigo-800 transition group">
                                 <div className="flex items-center gap-4">
-                                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-sm ${f.type === 'PDF' ? 'bg-red-100 text-red-600' : f.type === 'Video' ? 'bg-purple-100 text-purple-600' : 'bg-blue-100 text-blue-600'}`}>
-                                        {f.type === 'PDF' ? <Icons.FileText /> : f.type === 'Video' ? <Icons.Video /> : <Icons.Image />}
+                                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-sm ${f.format === 'PDF' ? 'bg-red-100 text-red-600' : f.format === 'Video' ? 'bg-purple-100 text-purple-600' : 'bg-blue-100 text-blue-600'}`}>
+                                        {f.format === 'PDF' || f.type === 'PDF' ? <Icons.FileText /> : f.format === 'Video' ? <Icons.Video /> : <Icons.Image />}
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <h4 className="font-bold text-slate-800 dark:text-slate-100 truncate">{f.title}</h4>
                                         <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 mt-1">
-                                            <span className="bg-slate-100 dark:bg-slate-700 px-2 py-0.5 rounded-full">{f.type}</span>
+                                            {/* Affichage de la catégorie (Chapitre, Résumé...) */}
+                                            <span className="bg-slate-100 dark:bg-slate-700 px-2 py-0.5 rounded-full font-semibold text-indigo-500">
+                                                {f.category || f.type || "Doc"}
+                                            </span>
                                             <span>{f.author}</span>
                                         </div>
                                     </div>
